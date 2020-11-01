@@ -1,0 +1,67 @@
+---
+title: "ETC5523 Group Presentation"  
+author: 
+  - "Priscila Grecov"
+  - "Mayunk Bharadwaj"
+date: '`r Sys.Date()`'
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: [default, metropolis, metropolis-fonts]
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+
+knitr::opts_chunk$set(echo = FALSE, fig.retina = 3)
+
+```
+
+```{r xaringan-themer, include=FALSE, warning=FALSE}
+library(xaringanthemer)
+style_duo_accent(
+  primary_color = "#1381B0",
+  secondary_color = "#FF961C",
+  inverse_header_color = "#FFFFFF"
+)
+```
+
+class: inverse, center, middle
+.center[
+# How does relative humidity change in Melbourne throughout the day and the year? 
+
+]
+
+When is it most uncomfortable to walk around the city (humidity <30% or >60%)?
+
+---
+.center[
+#Exploring the Data
+]
+---
+.center[
+#Data Wrangling
+]
+---
+.center[
+#Where are the sensors located?
+]
+---
+.center[
+#Humidity - within the day
+]
+---
+.center[
+#Humidity - within the year
+]
+---
+.center[
+#In conclusion
+]
+
+
+
