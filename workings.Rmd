@@ -1,0 +1,114 @@
+---
+title: "presentation"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(lubridate)
+library(ggmap)
+library(visdat)
+```
+
+```{r data}
+
+readings <- read.csv("Microclimate_Sensor_Readings.csv")
+locations <- read.csv("Microclimate_Sensor_Locations.csv")
+
+str(readings)
+str(locations)
+
+glimpse(readings)
+```
+
+Two types of data relevant to our question --> 
+Sensor id: 5b, Type: TPH.RH. Measures relative humidity in percentage (0 - 100)
+Sensor id: 5b.EPA-1h, Type:TPH.RH-EPA-1h Measures relative humidity one hour averaged (0-100)
+
+Measured at the 5 locations in locations
+
+```{r transformed-data}
+
+filtered_readings <- readings %>%
+  filter(sensor_id=="5b.EPA-1h") %>%
+  mutate(local_time_dttm=as_datetime(format(strptime(local_time, "%Y/%m/%d %I:%M:%S %p"),"%Y/%m/%d %H:%M:%S")),
+         hour=hour(local_time_dttm),
+         month=month(local_time_dttm)) %>%
+  arrange(local_time_dttm)
+
+visdat::vis_dat(filtered_readings)
+
+vis_miss(filtered_readings)
+
+```
+
+
+```{r sensor-locations}
+
+melbourne <- get_map(location = c(144.95, -37.82, 144.975, -37.79), source = "osm", maptype = "streetmap")
+
+ggmap(melbourne) +
+  geom_point(data=locations,
+             aes(x=longitude,y=latitude))
+
+```
+
+```{r hour-month-view}
+
+hour_view <- filtered_readings %>%
+  group_by(hour) %>%
+  summarise(average_value=mean(value),
+            max_value=max(value),
+            min_value=min(value),
+            median_value=median(value))
+
+
+ggplot(filtered_readings) +
+  geom_boxplot(aes(value)) +
+  facet_wrap(~hour) +
+  coord_flip()
+
+#more humid in late night/early morning
+ggplot(filtered_readings) +
+  geom_density(aes(value)) +
+  facet_wrap(~hour)
+
+#as a general rule, it is most comfortable in Melbourne from about 10AM to 6PM
+ggplot(hour_view) +
+  geom_line(aes(x=hour,y=average_value)) +
+  geom_hline(aes(yintercept=60),
+            color="red", linetype="dashed", size=1) +
+    geom_hline(aes(yintercept=30),
+            color="blue", linetype="dashed", size=1)
+
+ggplot(filtered_readings) +
+  geom_boxplot(aes(value)) +
+  facet_wrap(~month) +
+  coord_flip()
+
+#more humid in winter months, less humid in spring/summer months
+ggplot(filtered_readings) +
+  geom_density(aes(value)) +
+  facet_wrap(~month)
+
+month_view <- filtered_readings %>%
+  group_by(month) %>%
+  summarise(average_value=mean(value),
+            max_value=max(value),
+            min_value=min(value),
+            median_value=median(value))
+
+ggplot(month_view) +
+  geom_line(aes(x=month,y=average_value)) +
+  geom_hline(aes(yintercept=60),
+            color="red", linetype="dashed", size=1) +
+    geom_hline(aes(yintercept=30),
+            color="blue", linetype="dashed", size=1)
+
+
+ggplot(filtered_readings) +
+  geom_density(a)
+```
+
