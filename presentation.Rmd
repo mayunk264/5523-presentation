@@ -17,9 +17,16 @@ output:
 ```{r setup, include=FALSE}
 options(htmltools.dir.version = FALSE)
 
-knitr::opts_chunk$set(echo = FALSE, fig.retina = 3)
+knitr::opts_chunk$set(echo = FALSE,warning = FALSE, message = FALSE, fig.retina = 3)
 
-
+library(lubridate)
+library(visdat)
+library(tidyverse)
+library(knitr)
+library(leaflet)
+library(ggridges)
+library(hrbrthemes)
+library(viridis)
 ```
 
 ```{r xaringan-themer, include=FALSE, warning=FALSE}
@@ -31,9 +38,15 @@ style_duo_accent(
 )
 ```
 
-```{r}
+```{r, include=FALSE}
 sensor_readings <- read.csv("Microclimate_Sensor_Readings.csv")
 sensor_local <- read.csv("Microclimate_Sensor_Locations.csv")
+
+sensor_readingsRH <- sensor_readings %>% filter(sensor_id=="5b.EPA-1h")
+sensor_readingsRH$timeStamp <- format(as.POSIXct(sensor_readingsRH$local_time, format = "%Y/%m/%d %I:%M:%S %p",tz="UTC"),tz="Australia/Sydney")
+sensor_readingsRH$date <- as.Date(sensor_readingsRH$timeStamp)
+sensor_readingsRH$hour <- hour(sensor_readingsRH$timeStamp)
+sensor_readingsRH$month <- month(sensor_readingsRH$timeStamp)
 
 ```
 
@@ -67,35 +80,187 @@ Two relevant datasets:
 #Microclimate Sensor Readings
 ]
 
-.pull-left[
-About the dataset
+##About the dataset
+
+1343202 observations of 7 variables
 
 ```{r}
-str(sensor_readings)
+names(sensor_readings)
 ```
 
-]
+##What do the variables mean?
+
+- *site_id*: unique site identification
+- *sensor_id*: unique sensor ID
+- *value*: sensor value
+- *local_time*: Date/Time of reading in UTC
+- *type*: Name of sensor type
+- *units*: Units of measurement
 
 ---
 .center[
-#Data Wrangling
+#Microclimate Sensor Readings
 ]
+##What's relevant to us?
+
+- `local_time` is in UTC - needs to be converted to Melbourne time
+- data collection starts in mid-November 2019.
+- Many sensor types that measure lots of different aspects of the microclimate
+
+```{r, message=FALSE, warning=FALSE}
+unique(sensor_readings$sensor_id)
+```
+
+We are concerned with humidity, so we are only interested with sensor types: 
+
+- **TPH.RH (sensor_id: 5b)** --> measures Relative Humidity (%);
+- **TPH.RH-EPA-1h (sensor_id: 5b.EPA-1hr)** --> measures Relative Humidity 1hr-averaged (%).
+
+Our analysis will focus on **TPH.RH-EPA-1h**.
+---
+.center[
+#Is the data complete?
+]
+
+- Data is filtered on sensor_id: 5b.EPA-1hr
+
+.center[
+```{r}
+vis_miss(sensor_readingsRH)
+```
+]
+---
+.center[
+#Microclimate Sensor Locations
+]
+
+```{r}
+sensor_local %>%
+  select(site_id,description) %>%
+  rename("Site ID"=site_id,
+         "Address"=description) %>%
+  knitr::kable(format = "html")
+```
 ---
 .center[
 #Where are the sensors located?
 ]
----
+
 .center[
-#Humidity - within the day
+```{r, message=FALSE, warning=FALSE, out.width="100%"}
+leaflet(data = sensor_local) %>%
+  addTiles() %>%
+  addMarkers()
+```
 ]
 ---
 .center[
-#Humidity - within the year
+# Day-to-day view of Humidity
+
+```{r during-year, out.width="100%", fig.height=4}
+sensor_readingsRH %>%
+  filter(sensor_id == "5b.EPA-1h") %>%
+  group_by(site_id,date) %>%
+  summarise(mean_RH = mean(value), .groups = 'drop') %>%
+  ggplot(aes(x=date, y=mean_RH, group=site_id, color=site_id)) +
+  geom_line() +
+  geom_line(aes(y=60), color="black", linetype = "dotted") +
+  geom_line(aes(y=30), color="black", linetype = "dashed") +
+  theme_ipsum() +
+  xlab("") +
+  ylab("Mean Humidity (%)") +
+  scale_x_date(date_labels = "%Y-%m-%d", date_breaks  = "10 days") +
+  theme(axis.text.x=element_text(angle=60, hjust=1, size = 8)) +
+  ggtitle("Mean Humidity by Sensor over time")
+```
 ]
 ---
 .center[
-#In conclusion
+#Day-to-day view of Humidity
+
+```{r, out.width="100%", fig.height=4}
+sensor_readingsRH %>%
+  filter(sensor_id == "5b.EPA-1h") %>%
+  group_by(date) %>%
+  summarise(mean_RH = mean(value), median_RH = median(value), .groups = 'drop') %>%
+  ggplot(aes(x=date)) +
+  geom_line(aes(y=mean_RH), color="blue") +
+  #geom_line(aes(y=median_RH), color="red") +
+  geom_line(aes(y=60), color="red", linetype = "dashed") +
+  geom_line(aes(y=30), color="red", linetype = "dashed") +
+  theme_ipsum() +
+  xlab("") +
+  ylab("Mean Humidity (%)") +
+  scale_x_date(date_labels = "%Y-%m-%d", date_breaks  = "10 days") +
+  theme(axis.text.x=element_text(angle=60, hjust=1, size = 8)) +
+  ggtitle("Mean Humidity over time")
+```
+]
+---
+.center[
+#Day-to-day view of Humidity
+
+```{r, out.width="100%", fig.height=4}
+sensor_readingsRH %>%
+  filter(sensor_id == "5b.EPA-1h") %>%
+  group_by(date) %>%
+  summarise(mean_RH = median(value), .groups = 'drop') %>%
+  ggplot(aes(x=date, y=mean_RH)) +
+  geom_line() +
+  geom_line(aes(y=60), color="red", linetype = "dashed") +
+  geom_line(aes(y=30), color="red", linetype = "dashed") +
+  theme_ipsum() +
+  xlab("") +
+  ylab("Median Humidity (%)") +
+  scale_x_date(date_labels = "%Y-%m-%d", date_breaks  = "10 days") +
+  theme(axis.text.x=element_text(angle=60, hjust=1, size = 8)) +
+  ggtitle("Median Humidity over time")
+```
 ]
 
+- N.B: Just three days during all the year presented daily median below 30%: 21/11/2019, 31/01/2020.
+---
+.center[
+#Month-to-month view of Humidity
+
+```{r out.width="100%", fig.height=3.5}
+
+sensor_readingsRH %>%
+  filter(sensor_id == "5b.EPA-1h") %>%
+  group_by(month) %>%
+  summarise(mean_RH = mean(value), median_RH = median(value), .groups = 'drop') %>%
+  ggplot(aes(x=month)) +
+  geom_line(aes(y=mean_RH), color="blue") +
+  geom_line(aes(y=median_RH), color="red") +
+  geom_line(aes(y=60), color="black", linetype = "dashed") +
+  geom_line(aes(y=30), color="black", linetype = "dashed") +
+  theme_ipsum() +
+  xlab("Month") +
+  ylab("Mean and Median Humidity (%)") +
+  labs(color="Legend") +
+  scale_x_continuous(breaks = seq(1,12,1)) +
+  ggtitle("Mean and Median Humidity over time")
+```
+]
+
+- The months of May to August are the worst months where the relative humidity (RH) averages are much greater than 60%. November seems to be the month with the lowest RH average (but in this dataset we have just the the second half of data for November).
+---
+.center[
+#Hour-by-hour view of Humidity
+
+```{r out.width="100%", fig.height=4}
+sensor_readingsRH %>%
+  filter(sensor_id == "5b.EPA-1h") %>%
+  group_by(site_id, hour) %>%
+  summarise(mean_RH = mean(value), .groups = 'drop') %>%
+  ggplot(aes(x=hour, y=mean_RH, group=site_id, color=site_id)) +
+  geom_line(aes(y=60), color="black", linetype = "dashed") +
+  geom_line(aes(y=30), color="black", linetype = "dashed") +
+  geom_line() +
+  theme_ipsum() +
+  scale_x_continuous(breaks = seq(0,23,1)) +
+  ggtitle("Mean Humidity throughout the day")
+```
+]
 
 
