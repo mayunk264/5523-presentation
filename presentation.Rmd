@@ -325,7 +325,7 @@ sensor_readingsRH %>%
   ggplot(aes(x=hour)) +
   geom_line(aes(y=mean_RH), color="blue") +
   geom_line(aes(y=median_RH), color="red") +
-  geom_line(aes(y=70), color="black", linetype = "dotted") +
+  geom_line(aes(y=60), color="black", linetype = "dotted") +
   geom_line(aes(y=30), color="purple", linetype = "dotted") +
   facet_wrap(vars(month)) +
   scale_x_continuous(breaks = seq(0,23,1)) +
@@ -338,4 +338,11 @@ sensor_readingsRH %>%
 ```
 ]
 ---
+.center[
+#In Conclusion
+]
+- Melbourne rarely has a low humidity (<30%) problem
+- Melbourne does have a high humidity problem with average relative humidity generally above 60%. Especially so during winter.
+- Nights in Melbourne are generally comfortable with average relative humidity levels below 60%. From 6am to 9pm, however, average relative humidity generally rises above 60%.
+
 
