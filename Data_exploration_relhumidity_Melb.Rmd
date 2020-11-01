@@ -1,0 +1,253 @@
+---
+title: "Ass4 - ETC5523 - Relativity Humidity Melbourn"
+output: html_notebook
+---
+
+Group 6: SIGMA
+mbha0014	Mayunk Bharadwaj
+pgre0007	Priscila Grecov
+
+Presentation: TUE 4-6.00PM - order 6 - question Mitch
+
+Our question:
+
+4. How does relative humidity in Melbourne change throughout the **day** and **year**? **When** is it **most uncomfortable** to walk around the city (humidity **below 30%** or **above 60%**)?
+
+```{r reading-datasets}
+sensor_readings <- read.csv("Microclimate_Sensor_Readings.csv")
+sensor_local <- read.csv("Microclimate_Sensor_Locations.csv")
+```
+
+We need just the sensors that measure the relative humidity that are the ones with sensor_id = 5b and sensor_id = 5b.EPA-1hr
+
+
+```{r filtering-sensor}
+unique(sensor_readings$sensor_id)
+
+library(dplyr)
+sensor_readingsRH <- sensor_readings %>% filter(sensor_id %in% c("5b", "5b.EPA-1h"))
+```
+
+```{r showing-newtable}
+unique(sensor_readingsRH$sensor_id)
+```
+
+```{r}
+sensor_readingsRH$date <- as.Date(sensor_readingsRH$local_time)
+sensor_readingsRH$timeStamp <- as.POSIXct(sensor_readingsRH$local_time, format = "%Y/%m/%d %I:%M:%S %p")
+sensor_readingsRH$hour <- as.numeric(format(sensor_readingsRH$timeStamp, "%H"))
+sensor_readingsRH$month <- as.numeric(format(sensor_readingsRH$date, "%m"))
+sensor_readingsRH$hourMin <- format(sensor_readingsRH$timeStamp, "%H:%M")
+unique(sensor_readingsRH$hour)
+unique(sensor_readingsRH$month)
+unique(sensor_readingsRH$hourMin)
+
+library(chron)
+sensor_readingsRH$hourMin2 <- chron(times=sensor_readingsRH$hourMin, format = "h:m")
+sensor_readingsRH$hourMin2 <- format(strptime(sensor_readingsRH$hourMin2,"%H:%M:%S"),'%H:%M')
+```
+
+```{r}
+apply(sensor_readingsRH, 2, function(x) sum(is.na(x)))
+```
+
+```{r}
+sensor_readingsRH %>% 
+  filter(is.na(value))
+```
+
+```{r}
+unique(sensor_readingsRH$site_id)
+```
+
+```{r}
+library(ggplot2)
+library(ggridges)
+library(tidyverse)
+library(hrbrthemes)
+library(viridis)
+
+unique(sensor_readingsRH$date)
+```
+
+1ST) HOW RELATIVITY HUMIDITY CHANGE THROUGH THE YEAR - EXPLORING THE DATA BY MONTH OVER THE YEAR
+
+```{r during-year}
+sensor_readingsRH %>%
+  filter(sensor_id == "5b.EPA-1h") %>%
+  group_by(site_id,date) %>%
+  summarise(mean_RH = mean(value), .groups = 'drop') %>%
+  ggplot(aes(x=date, y=mean_RH, group=site_id, color=site_id)) +
+  geom_line() +
+  geom_line(aes(y=60), color="black", linetype = "dotted") +
+  geom_line(aes(y=30), color="black", linetype = "dashed") +
+  theme_ipsum() +
+  xlab("") +
+  scale_x_date(date_labels = "%Y-%m-%d", date_breaks  = "10 days") +
+  theme(axis.text.x=element_text(angle=60, hjust=1, size = 8)) 
+```
+By the graph below, the different sensors show the same pattern over the year. Then, we can join all the sensors taken the average or median.
+
+```{r}
+sensor_readingsRH %>%
+  filter(sensor_id == "5b.EPA-1h") %>%
+  group_by(date) %>%
+  summarise(mean_RH = mean(value), median_RH = median(value), .groups = 'drop') %>%
+  ggplot(aes(x=date)) +
+  geom_line(aes(y=mean_RH), color="blue") +
+  #geom_line(aes(y=median_RH), color="red") +
+  geom_line(aes(y=70), color="red", linetype = "dashed") +
+  geom_line(aes(y=30), color="red", linetype = "dashed") +
+  theme_ipsum() +
+  xlab("") +
+  scale_x_date(date_labels = "%Y-%m-%d", date_breaks  = "10 days") +
+  theme(axis.text.x=element_text(angle=60, hjust=1, size = 8)) 
+```
+```{r}
+sensor_readingsRH %>%
+  filter(sensor_id == "5b.EPA-1h") %>%
+  group_by(date) %>%
+  summarise(mean_RH = median(value), .groups = 'drop') %>%
+  ggplot(aes(x=date, y=mean_RH)) +
+  geom_line() +
+  geom_line(aes(y=70), color="red", linetype = "dashed") +
+  geom_line(aes(y=30), color="red", linetype = "dashed") +
+  theme_ipsum() +
+  xlab("") +
+  scale_x_date(date_labels = "%Y-%m-%d", date_breaks  = "10 days") +
+  theme(axis.text.x=element_text(angle=60, hjust=1, size = 8)) 
+```
+```{r}
+sensor_readingsRH %>%
+  filter(sensor_id == "5b.EPA-1h") %>%
+  group_by(date) %>%
+  summarise(median_RH = median(value), .groups = 'drop') %>%
+  filter(median_RH <= 30)
+```
+Just three days during all the year presented daily average below 30%: 21/11/2019, 20/12/2019, 30/01/2020.
+
+```{r}
+sensor_readingsRH %>%
+  filter(sensor_id == "5b.EPA-1h") %>%
+  group_by(site_id, month) %>%
+  summarise(mean_RH = median(value), .groups = 'drop') %>%
+  ggplot(aes(x=month, y=mean_RH, group=site_id, color=site_id)) +
+  geom_line() +
+  theme_ipsum() +
+  scale_x_continuous(breaks = seq(1,12,1))
+```
+```{r}
+sensor_readingsRH %>%
+  filter(sensor_id == "5b.EPA-1h") %>%
+  group_by(month) %>%
+  summarise(mean_RH = mean(value), median_RH = median(value), .groups = 'drop') %>%
+  ggplot(aes(x=month)) +
+  geom_line(aes(y=mean_RH), color="blue") +
+  geom_line(aes(y=median_RH), color="red") +
+  theme_ipsum() +
+  scale_x_continuous(breaks = seq(1,12,1))
+```
+```{r}
+sensor_readingsRH %>%
+  filter(sensor_id == "5b.EPA-1h") %>%
+  group_by(month) %>%
+  summarise(mean_RH = mean(value), median_RH = median(value), .groups = 'drop') %>%
+  filter(mean_RH >= 70 | median_RH >= 70)
+```
+The months of May to August are the worst moths where the RH averages are greater than 70%. November seems to be the month with the lowest RH average (but in this dataset we have just the 2nd half data for November).
+
+```{r}
+sensor_readingsRH %>%
+  filter(sensor_id == "5b.EPA-1h") %>%
+  group_by(month) %>%
+  summarise(mean_RH = mean(value), median_RH = median(value), .groups = 'drop')
+```
+2ND) HOW RELATIVITY HUMIDITY CHANGE THROUGH THE DAY - EXPLORING THE DATA BY HOUR OVER THE DAY.
+
+```{r}
+sensor_readingsRH %>%
+  filter(sensor_id == "5b.EPA-1h") %>%
+  group_by(site_id, hour) %>%
+  summarise(mean_RH = mean(value), .groups = 'drop') %>%
+  ggplot(aes(x=hour, y=mean_RH, group=site_id, color=site_id)) +
+  geom_line() +
+  theme_ipsum() +
+  scale_x_continuous(breaks = seq(0,23,1))
+```
+```{r}
+sensor_readingsRH %>%
+  filter(sensor_id == "5b.EPA-1h") %>%
+  group_by(hour) %>%
+  summarise(mean_RH = mean(value), median_RH = median(value), .groups = 'drop') %>%
+  ggplot(aes(x=hour)) +
+  geom_line(aes(y=mean_RH), color="blue") +
+  geom_line(aes(y=median_RH), color="red") +
+  geom_line(aes(y=70), color="black", linetype = "dashed") +
+  geom_line(aes(y=30), color="purple", linetype = "dashed") +
+  theme_ipsum() +
+  scale_x_continuous(breaks = seq(0,23,1))
+```
+```{r}
+library(plotly)
+facet1 <- sensor_readingsRH %>%
+  filter(sensor_id == "5b.EPA-1h") %>%
+  group_by(month, hour) %>%
+  summarise(mean_RH = mean(value), median_RH = median(value), .groups = 'drop') %>%
+  ggplot(aes(x=hour)) +
+  geom_line(aes(y=mean_RH), color="blue") +
+  geom_line(aes(y=median_RH), color="red") +
+  geom_line(aes(y=70), color="black", linetype = "dotted") +
+  geom_line(aes(y=30), color="purple", linetype = "dotted") +
+  facet_wrap(vars(month)) +
+  scale_x_continuous(breaks = seq(0,23,1)) +
+  theme(axis.text.x=element_text(angle=60, hjust=1, size = 7)) 
+
+ggplotly(facet1)  %>%
+        config(displayModeBar = F)
+
+```
+
+```{r}
+sensor_readingsRH %>%
+  filter(sensor_id == "5b.EPA-1h") %>%
+  group_by(month, hour) %>%
+  summarise(mean_RH = mean(value), median_RH = median(value), .groups = 'drop') %>%
+  filter(mean_RH <= 30 | median_RH <= 30)
+```
+```{r}
+sensor_readingsRH %>%
+  filter(sensor_id == "5b.EPA-1h") %>%
+  group_by(hour, month) %>%
+  summarise(mean_RH = mean(value), median_RH = median(value), .groups = 'drop') %>%
+  ggplot(aes(x=month)) +
+  geom_line(aes(y=mean_RH), color="blue") +
+  geom_line(aes(y=median_RH), color="red") +
+  geom_line(aes(y=70), color="black", linetype = "dashed", size=0.5) +
+  geom_line(aes(y=30), color="purple", linetype = "dashed", size=0.5) +
+  facet_wrap(vars(hour)) +
+  scale_x_continuous(breaks = seq(1,12,1))
+```
+
+```{r}
+sensor_readingsRH %>%
+  filter(sensor_id == "5b") %>%
+  filter(!is.na(value)) %>%
+  group_by(hourMin2) %>%
+  summarise(mean_RH = mean(value), .groups = 'drop') %>%
+  ggplot(aes(x=hourMin2)) +
+  geom_line(aes(y=mean_RH), color="blue") +
+  theme_ipsum() +
+  scale_x_time()
+```
+
+
+
+
+
+
+
+
+
+
+
+
