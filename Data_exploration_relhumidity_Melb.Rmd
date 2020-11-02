@@ -42,9 +42,12 @@ unique(sensor_readingsRH$hour)
 unique(sensor_readingsRH$month)
 unique(sensor_readingsRH$hourMin)
 
-library(chron)
-sensor_readingsRH$hourMin2 <- chron(times=sensor_readingsRH$hourMin, format = "h:m")
-sensor_readingsRH$hourMin2 <- format(strptime(sensor_readingsRH$hourMin2,"%H:%M:%S"),'%H:%M')
+sensor_readingsRH$month <- factor(month.abb[sensor_readingsRH$month], levels = month.abb)
+unique(sensor_readingsRH$month)
+
+# library(chron)
+# sensor_readingsRH$hourMin2 <- chron(times=sensor_readingsRH$hourMin, format = "h:m")
+# sensor_readingsRH$hourMin2 <- format(strptime(sensor_readingsRH$hourMin2,"%H:%M:%S"),'%H:%M')
 ```
 
 ```{r}
@@ -130,22 +133,22 @@ Just three days during all the year presented daily average below 30%: 21/11/201
 sensor_readingsRH %>%
   filter(sensor_id == "5b.EPA-1h") %>%
   group_by(site_id, month) %>%
-  summarise(mean_RH = median(value), .groups = 'drop') %>%
-  ggplot(aes(x=month, y=mean_RH, group=site_id, color=site_id)) +
+  summarise(median_RH = median(value), .groups = 'drop') %>%
+  ggplot(aes(x=month, y=median_RH, group=site_id, color=site_id)) +
   geom_line() +
-  theme_ipsum() +
-  scale_x_continuous(breaks = seq(1,12,1))
+  theme_ipsum() 
 ```
+
+
 ```{r}
 sensor_readingsRH %>%
   filter(sensor_id == "5b.EPA-1h") %>%
   group_by(month) %>%
   summarise(mean_RH = mean(value), median_RH = median(value), .groups = 'drop') %>%
-  ggplot(aes(x=month)) +
+  ggplot(aes(x=month, group = 1)) +
   geom_line(aes(y=mean_RH), color="blue") +
   geom_line(aes(y=median_RH), color="red") +
-  theme_ipsum() +
-  scale_x_continuous(breaks = seq(1,12,1))
+  theme_ipsum() 
 ```
 ```{r}
 sensor_readingsRH %>%
@@ -219,13 +222,13 @@ sensor_readingsRH %>%
   filter(sensor_id == "5b.EPA-1h") %>%
   group_by(hour, month) %>%
   summarise(mean_RH = mean(value), median_RH = median(value), .groups = 'drop') %>%
-  ggplot(aes(x=month)) +
+  ggplot(aes(x=month,  group = 1)) +
   geom_line(aes(y=mean_RH), color="blue") +
   geom_line(aes(y=median_RH), color="red") +
   geom_line(aes(y=70), color="black", linetype = "dashed", size=0.5) +
   geom_line(aes(y=30), color="purple", linetype = "dashed", size=0.5) +
-  facet_wrap(vars(hour)) +
-  scale_x_continuous(breaks = seq(1,12,1))
+  theme(axis.text.x=element_text(angle=60, hjust=1, size = 7)) +
+  facet_wrap(vars(hour)) 
 ```
 
 ```{r}
