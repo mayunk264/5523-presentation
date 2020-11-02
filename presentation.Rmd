@@ -359,7 +359,7 @@ sensor_readingsRH %>%
 
 ```
 ]
-* During the winter (May-Aug), always above 60% of RH!
+* During the winter (May-Aug), always above 60% of RH, anytime!
 * Another months --> only middle of the days are more comfortable (below 60%).
 ---
 .center[
@@ -374,10 +374,12 @@ sensor_readingsRH %>%
 
 - Melbourne **rarely has a low humidity** (<30%) problem.
 
-- Melbourne does **have a high humidity problem** with average relative humidity **generally above 60%**. Especially so during **winter**.
+- Melbourne does **have a high humidity problem** with average relative humidity **generally above 60%**. Especially so during **winter** (almost always > 60%).
 
-- **Nights** in Melbourne are **generally comfortable** with average relative humidity levels **below 60%** (excepts during the winter). 
+- **Middle of day** in Melbourne are **generally more comfortable** with average relative humidity levels **below 60%** (excepts during the winter). 
 
-- From **6am to 9pm**, however, average relative humidity generally **rises above 60%** (6am to 7pm if September, November or December months).
+- **Nights** and **early mornings**, however, are **more uncomfortable**, presenting average relative humidity generally **above 60%**.
+
+- *MOST UNCOMFORTABLE TO WALK AROUND THE CITY* --> **ALL WINTER + NIGHTS and EARLY MORNINGS**
 
 
