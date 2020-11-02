@@ -1,5 +1,6 @@
 ---
-title: "ETC5523 Group Presentation"  
+title: "ETC5523 Group Presentation"
+subtitle: "Team sigma"
 author: 
   - "Priscila Grecov"
   - "Mayunk Bharadwaj"
@@ -27,6 +28,7 @@ library(leaflet)
 library(ggridges)
 library(hrbrthemes)
 library(viridis)
+library(plotly)
 ```
 
 ```{r xaringan-themer, include=FALSE, warning=FALSE}
@@ -103,7 +105,7 @@ names(sensor_readings)
 ]
 ##What's relevant to us?
 
-- `local_time` is in UTC - needs to be converted to Melbourne time
+- `local_time` is in UTC
 - data collection starts in mid-November 2019.
 - Many sensor types that measure lots of different aspects of the microclimate
 
@@ -113,20 +115,20 @@ unique(sensor_readings$sensor_id)
 
 We are concerned with humidity, so we are only interested with sensor types: 
 
-- **TPH.RH (sensor_id: 5b)** --> measures Relative Humidity (%);
+- TPH.RH (sensor_id: 5b) --> measures Relative Humidity (%);
 - **TPH.RH-EPA-1h (sensor_id: 5b.EPA-1hr)** --> measures Relative Humidity 1hr-averaged (%).
 
-Our analysis will focus on **TPH.RH-EPA-1h**.
 ---
 .center[
 #Is the data complete?
 ]
 
 - Data is filtered on sensor_id: 5b.EPA-1hr
+- There are **NO** Missing values
 
 .center[
-```{r}
-vis_miss(sensor_readingsRH)
+```{r fig.height=6}
+vis_dat(sensor_readings %>% filter(sensor_id=="5b.EPA-1h"))
 ```
 ]
 ---
@@ -147,12 +149,14 @@ sensor_local %>%
 ]
 
 .center[
-```{r, message=FALSE, warning=FALSE, out.width="100%"}
+```{r, message=FALSE, warning=FALSE, out.width="100%", fig.height=6}
 leaflet(data = sensor_local) %>%
   addTiles() %>%
   addMarkers()
 ```
 ]
+
+- Sensors all within close proximity of eachother.
 ---
 .center[
 # Day-to-day view of Humidity
@@ -164,8 +168,6 @@ sensor_readingsRH %>%
   summarise(mean_RH = mean(value), .groups = 'drop') %>%
   ggplot(aes(x=date, y=mean_RH, group=site_id, color=site_id)) +
   geom_line() +
-  geom_line(aes(y=60), color="black", linetype = "dotted") +
-  geom_line(aes(y=30), color="black", linetype = "dashed") +
   theme_ipsum() +
   xlab("") +
   ylab("Mean Relative Humidity (%)") +
@@ -200,7 +202,7 @@ sensor_readingsRH %>%
 .center[
 #Day-to-day view of Humidity
 
-```{r, out.width="100%", fig.height=4}
+```{r, out.width="100%", fig.height=3.5}
 sensor_readingsRH %>%
   filter(sensor_id == "5b.EPA-1h") %>%
   group_by(date) %>%
@@ -215,10 +217,13 @@ sensor_readingsRH %>%
   scale_x_date(date_labels = "%Y-%m-%d", date_breaks  = "10 days") +
   theme(axis.text.x=element_text(angle=60, hjust=1, size = 8)) +
   ggtitle("Median Relative Humidity (%) over time")
+
 ```
 ]
 
-- N.B: Just three days during all the year presented daily median below 30%: 21/11/2019, 31/01/2020.
+N.B: Just two days during all the year presented daily median below 30%: 
+- **21/11/2019**
+- **31/01/2020**
 ---
 .center[
 #Month-to-month view of Humidity
@@ -239,7 +244,8 @@ sensor_readingsRH %>%
   ylab("Mean and Median Relative Humidity (%)") +
   labs(color="Legend") +
   scale_x_continuous(breaks = seq(1,12,1)) +
-  ggtitle("Mean (blue) and Median (red) Relative Humidity (%) over time")
+  ggtitle("Mean (blue) and Median (red) Relative Humidity (%)")
+  
 ```
 ]
 
@@ -276,6 +282,7 @@ sensor_readingsRH %>%
   xlab("Hour in day") +
   ylab("Mean Relative Humidity (%)") +
   scale_x_continuous(breaks = seq(0,23,1)) +
+  theme(axis.text.x=element_text(angle=60, hjust=1, size = 8)) +
   ggtitle("Mean Relative Humidity (%) throughout the day")
 ```
 ]
@@ -296,7 +303,8 @@ sensor_readingsRH %>%
   xlab("Hour in day") +
   ylab("Mean and Median Relative Humidity (%)") +
   scale_x_continuous(breaks = seq(0,23,1)) +
-  ggtitle("Mean (blue) and Median (red) Humidity throughout the day")
+  ggtitle("Mean (blue) and Median (red) Humidity (%)") +
+  theme(axis.text.x=element_text(angle=60, hjust=1, size = 8))
 ```
 ]
 ---
@@ -310,7 +318,8 @@ ggplot(sensor_readingsRH, aes(x = value, y = as.factor(hour), fill=hour)) +
   labs(title = "Densities of Relative Humidity (%) by Hour") +
   ylab("Hour") +
   xlab("Relative Humidity (%)") +
-  theme(legend.position = "none")
+  theme(legend.position = "none") +
+  theme(axis.text.y=element_text(size = 5))
 
 ```
 ]
@@ -328,11 +337,11 @@ sensor_readingsRH %>%
   geom_line(aes(y=60), color="black", linetype = "dotted") +
   geom_line(aes(y=30), color="purple", linetype = "dotted") +
   facet_wrap(vars(month)) +
-  scale_x_continuous(breaks = seq(0,23,1)) +
+  scale_x_continuous(breaks = seq(0,23,3)) +
   ylab("Mean Relative Humidity (%)") +
   xlab("Hour") +
-  theme(axis.text.x=element_text(angle=60, hjust=1, size = 7))  +
-  ggtitle("Mean Relative Humidity (%) throughout the day, faceted by month")
+  theme(axis.text.x=element_text(angle=60, hjust=1, size = 6))  +
+  ggtitle("Mean (blue) and Median (red) Relative Humidity (%) throughout the day")
 
 
 ```
