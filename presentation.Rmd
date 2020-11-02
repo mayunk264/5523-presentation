@@ -45,7 +45,7 @@ sensor_readings <- read.csv("Microclimate_Sensor_Readings.csv")
 sensor_local <- read.csv("Microclimate_Sensor_Locations.csv")
 
 sensor_readingsRH <- sensor_readings %>% filter(sensor_id=="5b.EPA-1h")
-sensor_readingsRH$timeStamp <- format(as.POSIXct(sensor_readingsRH$local_time, format = "%Y/%m/%d %I:%M:%S %p",tz="UTC"),tz="Australia/Sydney")
+sensor_readingsRH$timeStamp <- as.POSIXct(sensor_readingsRH$local_time, format = "%Y/%m/%d %I:%M:%S %p")
 sensor_readingsRH$date <- as.Date(sensor_readingsRH$timeStamp)
 sensor_readingsRH$hour <- hour(sensor_readingsRH$timeStamp)
 sensor_readingsRH$month <- month(sensor_readingsRH$timeStamp)
@@ -106,7 +106,6 @@ names(sensor_readings)
 ]
 ##What's relevant to us?
 
-- `local_time` is in UTC
 - data collection starts in mid-November 2019.
 - Many sensor types that measure lots of different aspects of the microclimate
 
@@ -139,7 +138,7 @@ vis_dat(sensor_readings %>% filter(sensor_id=="5b.EPA-1h"))
 
 ```{r}
 sensor_local %>%
-  select(site_id,description) %>%
+  select(site_id, description) %>%
   rename("Site ID"=site_id,
          "Address"=description) %>%
   knitr::kable(format = "html")
@@ -226,9 +225,10 @@ sensor_readingsRH %>%
 
 ```
 ]
-N.B: Just two days during all the year presented daily median below 30%: 
-- **21/11/2019**
-- **31/01/2020**
+N.B: Just three days during all the year presented daily median below 30%: 
+- **20/11/2019**
+- **20/12/2019**
+- **30/01/2020**
 
 ---
 .center[
@@ -334,7 +334,7 @@ ggplot(sensor_readingsRH, aes(x = value, y = as.factor(hour), fill=hour)) +
 
 ```
 ]
-* **Only nights are more confortable!**
+* **Middle of the day seems to be most comfortable!**
 
 ---
 .center[
@@ -360,7 +360,7 @@ sensor_readingsRH %>%
 ```
 ]
 * During the winter (May-Aug), always above 60% of RH!
-* Another months --> only nights are more comfortable (below 60%).
+* Another months --> only middle of the days are more comfortable (below 60%).
 ---
 .center[
 #In Conclusion
