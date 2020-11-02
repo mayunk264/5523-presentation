@@ -5,21 +5,33 @@
     <meta charset="utf-8" />
     <meta name="author" content="Priscila Grecov" />
     <meta name="author" content="Mayunk Bharadwaj" />
-    <meta name="date" content="2020-11-01" />
+    <meta name="date" content="2020-11-02" />
     <link href="libs/remark-css/default.css" rel="stylesheet" />
     <link href="libs/remark-css/metropolis.css" rel="stylesheet" />
     <link href="libs/remark-css/metropolis-fonts.css" rel="stylesheet" />
+    <script src="libs/htmlwidgets/htmlwidgets.js"></script>
+    <script src="libs/jquery/jquery.min.js"></script>
+    <link href="libs/leaflet/leaflet.css" rel="stylesheet" />
+    <script src="libs/leaflet/leaflet.js"></script>
+    <link href="libs/leafletfix/leafletfix.css" rel="stylesheet" />
+    <script src="libs/Proj4Leaflet/proj4-compressed.js"></script>
+    <script src="libs/Proj4Leaflet/proj4leaflet.js"></script>
+    <link href="libs/rstudio_leaflet/rstudio_leaflet.css" rel="stylesheet" />
+    <script src="libs/leaflet-binding/leaflet.js"></script>
   </head>
   <body>
     <textarea id="source">
 class: center, middle, inverse, title-slide
 
 # ETC5523 Group Presentation
+## Team sigma
 ### Priscila Grecov
 ### Mayunk Bharadwaj
-### 2020-11-01
+### 2020-11-02
 
 ---
+
+
 
 
 
@@ -56,30 +68,190 @@ Two relevant datasets:
 #Microclimate Sensor Readings
 ]
 
-.pull-left[
-yes
+##About the dataset
+
+1,343,202 observations of 7 variables
+
+
+```
+## [1] "id"         "site_id"    "sensor_id"  "value"      "local_time"
+## [6] "type"       "units"
+```
+
+##What do the variables mean?
+
+- **site_id**: Unique site identification
+- **sensor_id**: Unique sensor ID
+- **value**: Sensor value
+- **local_time**: Date/Time of reading in UTC
+- **type**: Name of sensor type
+- **units**: Units of measurement
+
+---
+.center[
+#Microclimate Sensor Readings
+]
+##What's relevant to us?
+
+- `local_time` is in UTC
+- data collection starts in mid-November 2019.
+- Many sensor types that measure lots of different aspects of the microclimate
+
+
+```
+##  [1] "0a.EPA-1h"              "0a.EPA-1h.NOPK"         "0a.EPA-1h.NOPK.EPA-24h"
+##  [4] "0a.EPA-1h.PKIND"        "0a.EPA-24h"             "0b.EPA-1h"             
+##  [7] "0b.EPA-1h.NOPK"         "0b.EPA-1h.NOPK.EPA-24h" "0b.EPA-1h.PKIND"       
+## [10] "0b.EPA-24h"             "5a.EPA-1h"              "5b.EPA-1h"             
+## [13] "5a"                     "5b"                     "5c"                    
+## [16] "6"                      "0a"                     "0b"
+```
+
+We are concerned with humidity, so we are only interested with sensor types: 
+
+- TPH.RH (sensor_id: 5b) --&gt; measures Relative Humidity (%);
+- **TPH.RH-EPA-1h (sensor_id: 5b.EPA-1hr)** --&gt; measures Relative Humidity 1hr-averaged (%).
+
+---
+.center[
+#Is the data complete?
 ]
 
+- Data is filtered on `sensor_id` == 5b.EPA-1hr
+- There are **NO** Missing values
 
 .center[
-#Data Wrangling
+&lt;img src="presentation_files/figure-html/unnamed-chunk-4-1.png" width="504" /&gt;
 ]
+---
+.center[
+#Microclimate Sensor Locations
+]
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Site ID &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Address &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; arc1045 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Between 87 and 89 Grattan Street, Carlton &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; arc1048 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 141 Grattan Street, Carlton &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; arc1046 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Corner of Swanston and Grattan Streets, Carlton &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; arc1047 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Corner of Pelham and Leicester Streets, Carlton &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; arc1050 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3/121 Grattan Street, Carlton &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
 ---
 .center[
 #Where are the sensors located?
 ]
+
+.center[
+<div id="htmlwidget-547a4090dbb9a23082f5" style="width:100%;height:432px;" class="leaflet html-widget"></div>
+<script type="application/json" data-for="htmlwidget-547a4090dbb9a23082f5">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addTiles","args":["//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",null,null,{"minZoom":0,"maxZoom":18,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false,"attribution":"&copy; <a href=\"http://openstreetmap.org\">OpenStreetMap<\/a> contributors, <a href=\"http://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA<\/a>"}]},{"method":"addMarkers","args":[[-37.800793,-37.800575,-37.800524,-37.8023,-37.800629],[144.966492,144.964635,144.964122,144.960923,144.965052],null,null,null,{"interactive":true,"draggable":false,"keyboard":true,"title":"","alt":"","zIndexOffset":0,"opacity":1,"riseOnHover":false,"riseOffset":250},null,null,null,null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]}],"limits":{"lat":[-37.8023,-37.800524],"lng":[144.960923,144.966492]}},"evals":[],"jsHooks":[]}</script>
+]
+
+- Sensors all within close proximity of eachother.
+---
+
+.center[
+#Day-to-day view of Humidity 
+
+&lt;img src="presentation_files/figure-html/during-year-1.png" width="100%" /&gt;
+]
+* Sensors follow same pattern, then we can join the data.
 ---
 .center[
-#Humidity - within the day
+#Day-to-day view of Humidity 
+
+&lt;img src="presentation_files/figure-html/unnamed-chunk-7-1.png" width="100%" /&gt;
 ]
 ---
 .center[
-#Humidity - within the year
+#Day-to-day view of Humidity 
+
+&lt;img src="presentation_files/figure-html/unnamed-chunk-8-1.png" width="100%" /&gt;
+]
+N.B: Just two days during all the year presented daily median below 30%: 
+- **21/11/2019**
+- **31/01/2020**
+
+---
+.center[
+#Month-to-month view of Humidity 
+
+&lt;img src="presentation_files/figure-html/unnamed-chunk-9-1.png" width="100%" /&gt;
+]
+
+- The months of **May to August** are the **worst** months --&gt; relative humidity (RH) averages are much greater than 60%. 
+- **November** --&gt; seems to be the month with the **lowest RH average** (but in this dataset we have just the the second half of data for November).
+---
+.center[
+#Month-to-month view of Humidity 
+&lt;img src="presentation_files/figure-html/unnamed-chunk-10-1.png" width="100%" /&gt;
 ]
 ---
 .center[
-#In conclusion
+#Hour-by-hour view of Humidity 
+
+&lt;img src="presentation_files/figure-html/unnamed-chunk-11-1.png" width="100%" /&gt;
 ]
+
+* Sensors follow same pattern, then we can join the data.
+---
+.center[
+#Hour-by-hour view of Humidity through the day
+&lt;img src="presentation_files/figure-html/unnamed-chunk-12-1.png" width="100%" /&gt;
+]
+---
+.center[
+#Hour-to-hour view of Humidity 
+&lt;img src="presentation_files/figure-html/unnamed-chunk-13-1.png" width="100%" /&gt;
+]
+* **Only nights are more confortable!**
+
+---
+.center[
+#Putting it all together
+&lt;img src="presentation_files/figure-html/unnamed-chunk-14-1.png" width="100%" /&gt;
+]
+* During the winter (May-Aug), always above 60% of RH!
+* Another months --&gt; only nights are more comfortable (below 60%).
+---
+.center[
+#In Conclusion
+]
+
+&lt;span style="     color: blue !important;" &gt;*How does relative humidity change in Melbourne throughout the day and the year?*&lt;/span&gt;
+
+&lt;span style="     color: blue !important;" &gt;*When is it most uncomfortable to walk around the city (humidity &amp;lt;30% or &amp;gt;60%)?*&lt;/span&gt;
+
+### ANSWERS:
+
+- Melbourne **rarely has a low humidity** (&lt;30%) problem.
+
+- Melbourne does **have a high humidity problem** with average relative humidity **generally above 60%**. Especially so during **winter**.
+
+- **Nights** in Melbourne are **generally comfortable** with average relative humidity levels **below 60%** (excepts during the winter). 
+
+- From **6am to 9pm**, however, average relative humidity generally **rises above 60%** (6am to 7pm if September, November or December months).
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>

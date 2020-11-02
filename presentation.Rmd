@@ -49,6 +49,7 @@ sensor_readingsRH$timeStamp <- format(as.POSIXct(sensor_readingsRH$local_time, f
 sensor_readingsRH$date <- as.Date(sensor_readingsRH$timeStamp)
 sensor_readingsRH$hour <- hour(sensor_readingsRH$timeStamp)
 sensor_readingsRH$month <- month(sensor_readingsRH$timeStamp)
+sensor_readingsRH$month <- factor(month.abb[sensor_readingsRH$month], levels = month.abb)
 
 ```
 
@@ -84,7 +85,7 @@ Two relevant datasets:
 
 ##About the dataset
 
-1343202 observations of 7 variables
+1,343,202 observations of 7 variables
 
 ```{r}
 names(sensor_readings)
@@ -92,12 +93,12 @@ names(sensor_readings)
 
 ##What do the variables mean?
 
-- *site_id*: unique site identification
-- *sensor_id*: unique sensor ID
-- *value*: sensor value
-- *local_time*: Date/Time of reading in UTC
-- *type*: Name of sensor type
-- *units*: Units of measurement
+- **site_id**: Unique site identification
+- **sensor_id**: Unique sensor ID
+- **value**: Sensor value
+- **local_time**: Date/Time of reading in UTC
+- **type**: Name of sensor type
+- **units**: Units of measurement
 
 ---
 .center[
@@ -123,7 +124,7 @@ We are concerned with humidity, so we are only interested with sensor types:
 #Is the data complete?
 ]
 
-- Data is filtered on sensor_id: 5b.EPA-1hr
+- Data is filtered on `sensor_id` == 5b.EPA-1hr
 - There are **NO** Missing values
 
 .center[
@@ -158,8 +159,9 @@ leaflet(data = sensor_local) %>%
 
 - Sensors all within close proximity of eachother.
 ---
+
 .center[
-# Day-to-day view of Humidity
+#Day-to-day view of Humidity 
 
 ```{r during-year, out.width="100%", fig.height=4}
 sensor_readingsRH %>%
@@ -172,13 +174,15 @@ sensor_readingsRH %>%
   xlab("") +
   ylab("Mean Relative Humidity (%)") +
   scale_x_date(date_labels = "%Y-%m-%d", date_breaks  = "10 days") +
-  theme(axis.text.x=element_text(angle=60, hjust=1, size = 8)) +
-  ggtitle("Mean Relative Humidity (%) by Sensor over time")
+  theme(axis.text.x=element_text(angle=60, hjust=1, size = 6)) +
+  ggtitle("Mean Relative Humidity (%) by Sensor through a year") +
+  theme(plot.title = element_text(size=15))
 ```
 ]
+* Sensors follow same pattern, then we can join the data.
 ---
 .center[
-#Day-to-day view of Humidity
+#Day-to-day view of Humidity 
 
 ```{r, out.width="100%", fig.height=4}
 sensor_readingsRH %>%
@@ -194,13 +198,14 @@ sensor_readingsRH %>%
   xlab("") +
   ylab("Mean Relative Humidity (%)") +
   scale_x_date(date_labels = "%Y-%m-%d", date_breaks  = "10 days") +
-  theme(axis.text.x=element_text(angle=60, hjust=1, size = 8)) +
-  ggtitle("Mean Relative Humidity (%) over time")
+  theme(axis.text.x=element_text(angle=60, hjust=1, size = 6)) +
+  ggtitle("Mean Relative Humidity (%) through a year") +
+  theme(plot.title = element_text(size=15))
 ```
 ]
 ---
 .center[
-#Day-to-day view of Humidity
+#Day-to-day view of Humidity 
 
 ```{r, out.width="100%", fig.height=3.5}
 sensor_readingsRH %>%
@@ -215,18 +220,19 @@ sensor_readingsRH %>%
   xlab("") +
   ylab("Median Relative Humidity (%)") +
   scale_x_date(date_labels = "%Y-%m-%d", date_breaks  = "10 days") +
-  theme(axis.text.x=element_text(angle=60, hjust=1, size = 8)) +
-  ggtitle("Median Relative Humidity (%) over time")
+  theme(axis.text.x=element_text(angle=60, hjust=1, size = 6)) +
+  ggtitle("Median Relative Humidity (%) through a year") +
+  theme(plot.title = element_text(size=15))
 
 ```
 ]
-
 N.B: Just two days during all the year presented daily median below 30%: 
 - **21/11/2019**
 - **31/01/2020**
+
 ---
 .center[
-#Month-to-month view of Humidity
+#Month-to-month view of Humidity 
 
 ```{r out.width="100%", fig.height=3.5}
 
@@ -234,7 +240,7 @@ sensor_readingsRH %>%
   filter(sensor_id == "5b.EPA-1h") %>%
   group_by(month) %>%
   summarise(mean_RH = mean(value), median_RH = median(value), .groups = 'drop') %>%
-  ggplot(aes(x=month)) +
+  ggplot(aes(x=month, group = 1)) +
   geom_line(aes(y=mean_RH), color="blue") +
   geom_line(aes(y=median_RH), color="red") +
   geom_line(aes(y=60), color="black", linetype = "dashed") +
@@ -243,31 +249,32 @@ sensor_readingsRH %>%
   xlab("Month") +
   ylab("Mean and Median Relative Humidity (%)") +
   labs(color="Legend") +
-  scale_x_continuous(breaks = seq(1,12,1)) +
-  ggtitle("Mean (blue) and Median (red) Relative Humidity (%)")
+  ggtitle("Mean (blue) and Median (red) Relative Humidity (%) through a year") +
+  theme(plot.title = element_text(size=12))
   
 ```
 ]
 
-- The months of May to August are the worst months where the relative humidity (RH) averages are much greater than 60%. November seems to be the month with the lowest RH average (but in this dataset we have just the the second half of data for November).
+- The months of **May to August** are the **worst** months --> relative humidity (RH) averages are much greater than 60%. 
+- **November** --> seems to be the month with the **lowest RH average** (but in this dataset we have just the the second half of data for November).
 ---
 .center[
-#Month-to-month view of Humidity
+#Month-to-month view of Humidity 
 ```{r out.width="100%", fig.height=4}
 
 ggplot(sensor_readingsRH, aes(x = value, y = as.factor(month), fill=month)) + 
-  geom_density_ridges() +
+  geom_density_ridges(bandwidth = 2.59) +
   theme_ridges() +
   labs(title = "Densities of Relative Humidity (%) by Month") +
   ylab("Month") +
   xlab("Relative Humidity (%)") +
-  theme(legend.position = "none")
+  theme(legend.position = "none") 
 
 ```
 ]
 ---
 .center[
-#Hour-by-hour view of Humidity
+#Hour-by-hour view of Humidity 
 
 ```{r out.width="100%", fig.height=4}
 sensor_readingsRH %>%
@@ -283,12 +290,15 @@ sensor_readingsRH %>%
   ylab("Mean Relative Humidity (%)") +
   scale_x_continuous(breaks = seq(0,23,1)) +
   theme(axis.text.x=element_text(angle=60, hjust=1, size = 8)) +
-  ggtitle("Mean Relative Humidity (%) throughout the day")
+  ggtitle("Mean Relative Humidity (%) throughout the day") +
+  theme(plot.title = element_text(size=15))
 ```
 ]
+
+* Sensors follow same pattern, then we can join the data.
 ---
 .center[
-#Hour-by-hour view of Humidity
+#Hour-by-hour view of Humidity through the day
 ```{r out.width="100%", fig.height=4}
 sensor_readingsRH %>%
   filter(sensor_id == "5b.EPA-1h") %>%
@@ -298,18 +308,19 @@ sensor_readingsRH %>%
   geom_line(aes(y=mean_RH), color="blue") +
   geom_line(aes(y=median_RH), color="red") +
   geom_line(aes(y=60), color="black", linetype = "dashed") +
-  geom_line(aes(y=30), color="purple", linetype = "dashed") +
+  geom_line(aes(y=30), color="black", linetype = "dashed") +
   theme_ipsum() +
   xlab("Hour in day") +
   ylab("Mean and Median Relative Humidity (%)") +
   scale_x_continuous(breaks = seq(0,23,1)) +
-  ggtitle("Mean (blue) and Median (red) Humidity (%)") +
-  theme(axis.text.x=element_text(angle=60, hjust=1, size = 8))
+  ggtitle("Mean (blue) and Median (red) Humidity (%) throughout the day") +
+  theme(axis.text.x=element_text(angle=60, hjust=1, size = 8)) +
+  theme(plot.title = element_text(size=13))
 ```
 ]
 ---
 .center[
-#Hour-to-hour view of Humidity
+#Hour-to-hour view of Humidity 
 ```{r out.width="100%", fig.height=4}
 
 ggplot(sensor_readingsRH, aes(x = value, y = as.factor(hour), fill=hour)) + 
@@ -323,6 +334,8 @@ ggplot(sensor_readingsRH, aes(x = value, y = as.factor(hour), fill=hour)) +
 
 ```
 ]
+* **Only nights are more confortable!**
+
 ---
 .center[
 #Putting it all together
@@ -335,7 +348,7 @@ sensor_readingsRH %>%
   geom_line(aes(y=mean_RH), color="blue") +
   geom_line(aes(y=median_RH), color="red") +
   geom_line(aes(y=60), color="black", linetype = "dotted") +
-  geom_line(aes(y=30), color="purple", linetype = "dotted") +
+  geom_line(aes(y=30), color="black", linetype = "dotted") +
   facet_wrap(vars(month)) +
   scale_x_continuous(breaks = seq(0,23,3)) +
   ylab("Mean Relative Humidity (%)") +
@@ -346,12 +359,25 @@ sensor_readingsRH %>%
 
 ```
 ]
+* During the winter (May-Aug), always above 60% of RH!
+* Another months --> only nights are more comfortable (below 60%).
 ---
 .center[
 #In Conclusion
 ]
-- Melbourne rarely has a low humidity (<30%) problem
-- Melbourne does have a high humidity problem with average relative humidity generally above 60%. Especially so during winter.
-- Nights in Melbourne are generally comfortable with average relative humidity levels below 60%. From 6am to 9pm, however, average relative humidity generally rises above 60%.
+
+`r kableExtra::text_spec("*How does relative humidity change in Melbourne throughout the day and the year?*", color = "blue")`
+
+`r kableExtra::text_spec("*When is it most uncomfortable to walk around the city (humidity <30% or >60%)?*", color = "blue")`
+
+### ANSWERS:
+
+- Melbourne **rarely has a low humidity** (<30%) problem.
+
+- Melbourne does **have a high humidity problem** with average relative humidity **generally above 60%**. Especially so during **winter**.
+
+- **Nights** in Melbourne are **generally comfortable** with average relative humidity levels **below 60%** (excepts during the winter). 
+
+- From **6am to 9pm**, however, average relative humidity generally **rises above 60%** (6am to 7pm if September, November or December months).
 
 
