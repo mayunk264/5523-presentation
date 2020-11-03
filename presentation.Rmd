@@ -381,5 +381,11 @@ sensor_readingsRH %>%
 - **Nights** and **early mornings**, however, are **more uncomfortable**, presenting average relative humidity generally **above 60%**.
 
 - *MOST UNCOMFORTABLE TO WALK AROUND THE CITY* --> **ALL WINTER + NIGHTS and EARLY MORNINGS**
+---
+class: inverse, center, middle
+.center[
+# Thank you!
+
+]
 
 
